@@ -42,27 +42,41 @@ class insurgency(
   $gid         = 501,
   $homedir     = '/home/insserver',
   $serverfiles = '/home/insserver/serverfiles',
-  $emailnotification = "on",
-  $email             = "insserver@jballou.com",
-  $steamuser         = "jballou_ins",
-  $steampass         = "Vhsl8LO4ekG48nf",
-  $defaultmap="ministry_coop",
-  $defaultmode="checkpoint",
-  $mapcyclefile="mapcycle.txt",
-  $maxplayers=64,
-  $port=27015,
-  $sourcetvport=27020,
-  $clientport=27005,
-  $ip=$::ipaddress,
-  $logdays=7,
-  $appid="237410",
-  $gamename="Insurgency",
-  $engine="source",
+  $defaults    = {
+    emailnotification => "on",
+    email             => "insserver@jballou.com",
+    steamuser         => "jballou_ins",
+    steampass         => "Vhsl8LO4ekG48nf",
+    defaultmap        => "ministry_coop",
+    defaultmode       => "checkpoint",
+    mapcyclefile      => "mapcycle_verynotfun.txt",
+    maxplayers        => 64,
+    port              => 27015,
+    sourcetvport      => 27020,
+    clientport        => 27005,
+    ip                => $::ipaddress,
+    logdays           => 7,
+    appid             => "237410",
+    gamename          => "Insurgency",
+    engine            => "source"
+  },
   $instances   = {},
+  $admins = {
+    'Geezer' => {
+      'steamid' => 'STEAM_1:1:10119430',
+      'level' => '90:z'
+    },
+    'jballou' => {
+      'steamid' => 'STEAM_1:1:2938846',
+      'level' => '99:z'
+    }
+  },
+  $gitserver = 'git@github.com:jaredballou",
 #'default' => { defaultmap => "ministry_coop", defaultmode => "checkpoint", mapcyclefile => "mapcycle.txt", maxplayers => "64", port => "27015", sourcetvport => "27020", clientport => "27005", ip => $::ipaddress, logdays => "7"}},
 ) {
-  Vcsrepo { owner => $user, group => $group, }
+  Vcsrepo { owner => $user, group => $group, ensure => present, provider => git, revision => 'master', }
   File { owner => $user, group => $group, }
+  Exec { user => $user, }
   group { $group: gid => $gid, } ->
   user { $user: uid => $uid, home => $homedir, gid => $group, } ->
   package { ['git','gdb','mailx','wget','nano','tmux','glibc.i686','libstdc++.i686']: ensure => present, } ->
@@ -70,39 +84,29 @@ class insurgency(
   file { $homedir: ensure => directory, } ->
   file { "${homedir}/insserver": mode => '0755', content => template('insurgency/insserver.erb'), } ->
   file { "${homedir}/cfg.insserver": ensure => directory, } ->
-  file { "${homedir}/cfg.insserver/default.cfg": content => template('insurgency/instance.cfg.erb'), } ->
-  exec { "insserver install": cwd => $homedir, path => $homedir, creates => $serverfiles, } ->
+  insurgency::instance { 'default': config => $defaults, } ->
+  exec { "insserver install": cwd => $homedir, path => "${::path}:${homedir}", creates => $serverfiles, } ->
   file { $serverfiles: ensure => directory, source => 'puppet:///modules/insurgency/serverfiles', recurse => remote, } ->
   vcsrepo { "${serverfiles}/insurgency/addons/sourcemod":
-    ensure   => latest,
-    provider => git,
-    source   => 'https://bitbucket.org/jballou/insurgency-sourcemod',
-    revision => 'master',
+    source   => "${gitserver}/insurgency-sourcemod.git",
+#    source   => 'https://bitbucket.org/jballou/insurgency-sourcemod',
   } ->
   vcsrepo { "${serverfiles}/insurgency/maps":
-    ensure   => latest,
-    provider => git,
-    source   => 'https://bitbucket.org/jballou/insurgency-maps',
-    revision => 'master',
+    source   => "${gitserver}/insurgency-maps.git",
   } ->
   vcsrepo { "${serverfiles}/insurgency/materials":
-    ensure   => latest,
-    provider => git,
-    source   => 'https://bitbucket.org/jballou/insurgency-materials',
-    revision => 'master',
+    source   => "${gitserver}/insurgency-materials.git",
   } ->
   vcsrepo { "${serverfiles}/insurgency/scripts/theaters":
-    ensure   => latest,
-    provider => git,
-    source   => 'https://bitbucket.org/jballou/insurgency-theaters',
-    revision => 'master',
+    source   => "${gitserver}/insurgency-theaters.git",
   } ->
   vcsrepo { "${serverfiles}/insurgency/resource":
-    ensure   => latest,
-    provider => git,
-    source   => 'https://bitbucket.org/jballou/insurgency-resource',
-    revision => 'master',
-  }
+    source   => "${gitserver}/insurgency-resource.git",
+  } ->
+  file { "${serverfiles}/insurgency/maps": ensure => directory, source => 'puppet:///modules/insurgency/maps', recurse => remote, } ->
+  file { "${serverfiles}/insurgency/addons/sourcemod/configs/admins_simple.ini": content => template('insurgency/admins.erb'), } ->
+  exec { "generate-bzips-and-links.sh": cwd => "${serverfiles}/insurgency/maps", path => "${::path}:${serverfiles}/insurgency/maps", } ->
+  cron { 'insserver-update-restart': user => $user, minute => 0, hour => 10, command => "cd ${homedir} && ./insserver update-restart", }
 }
 /*
  ->

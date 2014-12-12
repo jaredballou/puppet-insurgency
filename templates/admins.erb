@@ -1,0 +1,4 @@
+<% admins.keys.sort.each do |admin| -%>
+//<%= admin %>
+"<%= admins[admin]['steamid'] %>" "<%= admins[admin]['level'] %>"
+<% end -%>

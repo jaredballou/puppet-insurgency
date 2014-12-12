@@ -1,0 +1,26 @@
+---
+defaults:
+  emailnotification: on
+  email: insserver@jballou.com
+  steamuser: jballou_ins
+  steampass: Vhsl8LO4ekG48nf
+  defaultmap: ministry_coop
+  defaultmode: checkpoint
+  mapcyclefile: mapcycle_coop_custom.txt
+  maxplayers: 64
+  port: 27015
+  sourcetvport: 27020
+  clientport: 27005
+  ip: %{::ipaddress}
+  logdays: 7
+  appid: 237410
+  gamename: Insurgency
+  engine: source
+admins:
+  Geezer:
+    steamid: STEAM_1:1:10119430
+    level: 90:z
+  jballou:
+    steamid: STEAM_1:1:2938846
+    level: 99:z
+...

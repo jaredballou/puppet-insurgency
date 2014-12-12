@@ -1,18 +1,3 @@
-emailnotification="<%= @emailnotification %>"
-email="<%= @email %>"
-steamuser="<%= @steamuser %>"
-steampass="<%= steampass %>"
-defaultmap="<%= @defaultmap %>"
-defaultmode="<%= @defaultmode %>"
-mapcyclefile="<%= @mapcyclefile %>"
-maxplayers="<%= @maxplayers %>"
-port="<%= @port %>"
-sourcetvport="<%= @sourcetvport %>"
-clientport="<%= @clientport %>"
-ip="<%= @ip %>"
-logdays="<%= @logdays %>"
-appid="<%= @appid %>"
-servicename=$(basename $0)
-gamename="<%= @gamename %>"
-engine="<%= @engine %>"
-
+<% config.keys.sort.each do |key| -%>
+<%= key %>="<%= config[key] %>"
+<% end -%>
