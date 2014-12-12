@@ -258,23 +258,14 @@ done
 fn_printdots "Starting ${servicename} console"
 sleep 1
 tmuxwc=$(tmux list-sessions 2>&1|awk '{print $1}'|grep -v failed|grep -E "^${servicename}:"|wc -l)
-if [ ${tmuxwc} -eq 1 ]; then
-	fn_printoknl "Starting ${servicename} console"
-	fn_scriptlog "Console accessed"
-	sleep 1
-	tmux attach-session -t ${servicename}
-else
-	fn_printfailnl "Starting ${servicename} console: ${servername} not running"
-	sleep 1
-	while true; do
-		read -p "Do you want to start the server? [y/N]" yn
-		case $yn in
-		[Yy]* ) fn_startserver; break;;
-		[Nn]* ) break;;
-		* ) echo "Please answer yes or no.";;
-	esac
-	done
+if [ ${tmuxwc} -lt 1 ]; then
+	fn_printfailnl "Starting ${servicename} console: ${servername} not running, starting..."
+	fn_startserver
 fi
+fn_printoknl "Starting ${servicename} console"
+fn_scriptlog "Console accessed"
+sleep 1
+tmux attach-session -t ${servicename}
 }
 
 fn_backupserver(){
@@ -673,16 +664,6 @@ if [ -z $(command -v ldd) ]; then
 	echo -e "\r\033[K\e[0;31mFAIL\e[0;39m GLIBC is not detected."
 	sleep 1
 	echo "Install GLIBC and retry installation"
-	sleep 1
-	echo ""
-	while true; do
-		read -p "Continue install? [y/N]" yn
-		case $yn in
-			[Yy]* ) break;;
-			[Nn]* ) echo Exiting; exit;;
-			 * ) echo "Please answer yes or no.";;
-		esac
-	done
 elif [ "$(ldd --version | sed -n '1 p' | tr -cd [:digit:] | tail -c 3)" -lt 215 ]; then
 	echo "GLIBC Fix required"
 	echo "============================"
@@ -816,14 +797,6 @@ cd "${rootdir}/steamcmd"
 STEAMEXE=steamcmd ./steamcmd.sh +login ${steamuser} "${steampass}" +force_install_dir "${filesdir}" +app_update "${appid}" validate +quit
 echo ""
 echo "================================="
-while true; do
-	read -p "Was the install successful? [y/N]" yn
-	case $yn in
-	[Yy]* ) break;;
-	[Nn]* ) fn_retryinstall;;
-	* ) echo "Please answer yes or no.";;
-	esac
-done
 echo ""
 }
 
@@ -859,26 +832,13 @@ echo ""
 fn_getquery(){
 	echo "GameServerQuery"
 	echo "============================"
-	while true; do
-		read -p "Do you want to install GameServerQuery? [y/N]" yn
-		case $yn in
-		[Yy]* ) cd "${rootdir}"; wget -nv -N "http://danielgibbs.co.uk/dl/gsquery.py"; chmod +x gsquery.py; break;;
-		[Nn]* ) echo -e "Not installing GameServerQuery.";break;;
-		* ) echo "Please answer yes or no.";;
-	esac
-	done
+	wget -nv -N "http://danielgibbs.co.uk/dl/gsquery.py" -O "${rootdir}/gsquery.py"
+	chmod +x "${rootdir}/gsquery.py"
 	echo ""
 }
 
 fn_retryinstall(){
-while true; do
-	read -p "Retry install? [y/N]" yn
-	case $yn in
-	[Yy]* ) fn_install; exit;;
-	[Nn]* ) echo Exiting; exit;;
-	* ) echo "Please answer yes or no.";;
-	esac
-done
+	fn_install
 }
 
 fn_install(){
@@ -900,14 +860,6 @@ fi
 echo "Install Directory:"
 pwd
 echo ""
-while true; do
-	read -p "Continue [y/N]" yn
-	case $yn in
-	[Yy]* ) break;;
-	[Nn]* ) echo Exiting; return 1;;
-	* ) echo "Please answer yes or no.";;
-	esac
-done
 fn_header
 fn_steamdl
 fn_steaminstall
