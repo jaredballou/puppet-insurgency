@@ -71,8 +71,7 @@ class insurgency(
       'level' => '99:z'
     }
   },
-  $gitserver = 'git@github.com:jaredballou",
-#'default' => { defaultmap => "ministry_coop", defaultmode => "checkpoint", mapcyclefile => "mapcycle.txt", maxplayers => "64", port => "27015", sourcetvport => "27020", clientport => "27005", ip => $::ipaddress, logdays => "7"}},
+  $gitserver = 'git@github.com:jaredballou',
 ) {
   Vcsrepo { owner => $user, group => $group, ensure => present, provider => git, revision => 'master', }
   File { owner => $user, group => $group, }
