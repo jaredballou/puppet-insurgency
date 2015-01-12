@@ -84,6 +84,7 @@ class insurgency(
     },
   },
   $gitserver = 'git@github.com:jaredballou',
+  $fastdl    = 'http://ins.jballou.com/fastdl',
 ) {
   Vcsrepo { owner => $user, group => $group, ensure => present, provider => git, revision => 'master', }
   File { owner => $user, group => $group, }
@@ -116,9 +117,8 @@ class insurgency(
     source   => "${gitserver}/insurgency-resource.git",
   } ->
 */
-  file { "${serverfiles}/insurgency/maps": ensure => directory, source => 'puppet:///modules/insurgency/maps', recurse => remote, } ->
   file { "${serverfiles}/insurgency/addons/sourcemod/configs/admins_simple.ini": content => template('insurgency/admins.erb'), } ->
-  exec { "generate-bzips-and-links.sh": cwd => "${serverfiles}/insurgency/maps", path => "${::path}:${serverfiles}/insurgency/maps", } ->
+#  exec { "generate-bzips-and-links.sh": cwd => "${serverfiles}/insurgency/maps", path => "${::path}:${serverfiles}/insurgency/maps", } ->
   cron { 'insserver-update-restart': user => $user, minute => 0, hour => 10, command => "cd ${homedir} && ./insserver update-restart", }
 }
 /*
