@@ -62,14 +62,26 @@ class insurgency(
   },
   $instances   = {},
   $admins = {
+    'jballou' => {
+      'steamid' => 'STEAM_1:1:2938846',
+      'level' => '99:z'
+    },
     'Geezer' => {
       'steamid' => 'STEAM_1:1:10119430',
       'level' => '90:z'
     },
-    'jballou' => {
-      'steamid' => 'STEAM_1:1:2938846',
-      'level' => '99:z'
-    }
+    'MrClark' => {
+      'steamid' => 'STEAM_1:1:15239283',
+      'level' => '90:z'
+    },
+    'StinkPickle' => {
+      'steamid' => 'STEAM_1:1:17921013',
+      'level' => '90:z'
+    },
+    'Stryder' => {
+      'steamid' => 'STEAM_1:0:66263075',
+      'level' => '90:z'
+    },
   },
   $gitserver = 'git@github.com:jaredballou',
 ) {
@@ -86,6 +98,7 @@ class insurgency(
   insurgency::instance { 'default': config => $defaults, } ->
   exec { "insserver install": cwd => $homedir, path => "${::path}:${homedir}", creates => $serverfiles, } ->
   file { $serverfiles: ensure => directory, source => 'puppet:///modules/insurgency/serverfiles', recurse => remote, } ->
+/*
   vcsrepo { "${serverfiles}/insurgency/addons/sourcemod":
     source   => "${gitserver}/insurgency-sourcemod.git",
 #    source   => 'https://bitbucket.org/jballou/insurgency-sourcemod',
@@ -102,6 +115,7 @@ class insurgency(
   vcsrepo { "${serverfiles}/insurgency/resource":
     source   => "${gitserver}/insurgency-resource.git",
   } ->
+*/
   file { "${serverfiles}/insurgency/maps": ensure => directory, source => 'puppet:///modules/insurgency/maps', recurse => remote, } ->
   file { "${serverfiles}/insurgency/addons/sourcemod/configs/admins_simple.ini": content => template('insurgency/admins.erb'), } ->
   exec { "generate-bzips-and-links.sh": cwd => "${serverfiles}/insurgency/maps", path => "${::path}:${serverfiles}/insurgency/maps", } ->

@@ -17,10 +17,17 @@ defaults:
   gamename: Insurgency
   engine: source
 admins:
-  Geezer:
-    steamid: STEAM_1:1:10119430
-    level: 90:z
   jballou:
     steamid: STEAM_1:1:2938846
     level: 99:z
+  Geezer:
+    steamid: STEAM_1:1:10119430
+    level: 90:z
+  MrClark:
+    steamid: STEAM_1:1:15239283
+    level: 90:z
+  StinkPickle:
+    steamid: STEAM_1:1:17921013
+    level: 90:z
+
 ...
