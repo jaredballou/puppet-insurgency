@@ -1,21 +1,22 @@
 ---
 defaults:
-  emailnotification: on
-  email: insserver@jballou.com
-  steamuser: jballou_ins
-  steampass: Vhsl8LO4ekG48nf
+  appid: 237410
+  beta:
+  clientport: 27005
   defaultmap: ministry_coop
   defaultmode: checkpoint
-  mapcyclefile: mapcycle_coop_custom.txt
+  email: insserver@jballou.com
+  emailnotification: on
+  engine: source
+  gamename: Insurgency
+  ip: %{::ipaddress}
+  logdays: 7
+  mapcyclefile: mapcycle_checkpoint.txt
   maxplayers: 64
   port: 27015
   sourcetvport: 27020
-  clientport: 27005
-  ip: %{::ipaddress}
-  logdays: 7
-  appid: 237410
-  gamename: Insurgency
-  engine: source
+  steamuser: anonymous
+  steampass: 
 admins:
   jballou:
     steamid: STEAM_1:1:2938846
@@ -29,5 +30,4 @@ admins:
   StinkPickle:
     steamid: STEAM_1:1:17921013
     level: 90:z
-
 ...

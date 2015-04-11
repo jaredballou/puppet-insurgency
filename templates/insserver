@@ -19,9 +19,24 @@ if [ ! -e $scriptcfgdir ]; then mkdir -p $scriptcfgdir; fi
 if [ ! -f $cfg_default ]
 then
 cat <<'EOF' >> $cfg_default
-<% defaults.keys.sort.each do |key| -%>
-<%= key %>="<%= defaults[key] %>"
-<% end -%>
+appid="237410"
+beta=""
+# -beta beta
+clientport="27005"
+defaultmap="ministry_coop"
+defaultmode="checkpoint"
+email="you@email.com"
+emailnotification="on"
+engine="source"
+gamename="Insurgency"
+ip="$ipaddr"
+logdays="7"
+mapcyclefile="mapcycle.txt"
+maxplayers="64"
+port="27015"
+sourcetvport="27020"
+steampass=""
+steamuser="anonymous"
 EOF
 fi
 

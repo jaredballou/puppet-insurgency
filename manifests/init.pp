@@ -43,22 +43,23 @@ class insurgency(
   $homedir     = '/home/insserver',
   $serverfiles = '/home/insserver/serverfiles',
   $defaults    = {
-    emailnotification => "on",
-    email             => "insserver@jballou.com",
-    steamuser         => "jballou_ins",
-    steampass         => "Vhsl8LO4ekG48nf",
-    defaultmap        => "ministry_coop",
-    defaultmode       => "checkpoint",
-    mapcyclefile      => "mapcycle_verynotfun.txt",
+    appid             => 237410,
+    beta              => '',
+    clientport        => 27005,
+    defaultmap        => 'ministry_coop',
+    defaultmode       => 'checkpoint',
+    email             => 'insserver@jballou.com',
+    emailnotification => 'on',
+    engine            => 'source',
+    gamename          => 'Insurgency',
+    ip                => $::ipaddress,
+    logdays           => 7,
+    mapcyclefile      => 'mapcycle_checkpoint.txt',
     maxplayers        => 64,
     port              => 27015,
     sourcetvport      => 27020,
-    clientport        => 27005,
-    ip                => $::ipaddress,
-    logdays           => 7,
-    appid             => "237410",
-    gamename          => "Insurgency",
-    engine            => "source"
+    steamuser         => 'anonymous',
+    steampass         => '',
   },
   $instances   = {},
   $admins = {
@@ -83,8 +84,9 @@ class insurgency(
       'level' => '90:z'
     },
   },
-  $gitserver = 'git@github.com:jaredballou',
-  $fastdl    = 'http://ins.jballou.com/fastdl',
+  $gitserver    = 'git@github.com:jaredballou',
+  $fastdl_http  = 'http://ins.jballou.com/fastdl',
+  $fastdl_rsync = 'rsync://ins.jballou.com/fastdl',
 ) {
   Vcsrepo { owner => $user, group => $group, ensure => present, provider => git, revision => 'master', }
   File { owner => $user, group => $group, }
@@ -95,34 +97,24 @@ class insurgency(
   exec { 'create-homedir': command => "mkdir -p \"${homedir}\"", creates => $homedir, } ->
   file { $homedir: ensure => directory, } ->
   file { "${homedir}/insserver": mode => '0755', content => template('insurgency/insserver.erb'), } ->
+  file { "${homedir}/sync-all-files.sh": mode => '0755', content => template('insurgency/sync-all-files.sh.erb'), } ->
   file { "${homedir}/cfg.insserver": ensure => directory, } ->
   insurgency::instance { 'default': config => $defaults, } ->
   exec { "insserver install": cwd => $homedir, path => "${::path}:${homedir}", creates => $serverfiles, } ->
   file { $serverfiles: ensure => directory, source => 'puppet:///modules/insurgency/serverfiles', recurse => remote, } ->
-/*
+  exec { 'mkdir-sourcemod': command => "mkdir -p ${serverfiles}/insurgency/addons", creates => "${serverfiles}/insurgency/addons", } ->
   vcsrepo { "${serverfiles}/insurgency/addons/sourcemod":
     source   => "${gitserver}/insurgency-sourcemod.git",
-#    source   => 'https://bitbucket.org/jballou/insurgency-sourcemod',
   } ->
-  vcsrepo { "${serverfiles}/insurgency/maps":
-    source   => "${gitserver}/insurgency-maps.git",
-  } ->
-  vcsrepo { "${serverfiles}/insurgency/materials":
-    source   => "${gitserver}/insurgency-materials.git",
-  } ->
+  exec { 'mkdir-scripts': command => "mkdir -p ${serverfiles}/insurgency/scripts", creates => "${serverfiles}/insurgency/scripts", } ->
   vcsrepo { "${serverfiles}/insurgency/scripts/theaters":
     source   => "${gitserver}/insurgency-theaters.git",
   } ->
-  vcsrepo { "${serverfiles}/insurgency/resource":
-    source   => "${gitserver}/insurgency-resource.git",
+  vcsrepo { "${serverfiles}/insurgency/insurgency-data":
+    source   => "${gitserver}/insurgency-data.git",
   } ->
-*/
   file { "${serverfiles}/insurgency/addons/sourcemod/configs/admins_simple.ini": content => template('insurgency/admins.erb'), } ->
-#  exec { "generate-bzips-and-links.sh": cwd => "${serverfiles}/insurgency/maps", path => "${::path}:${serverfiles}/insurgency/maps", } ->
-  cron { 'insserver-update-restart': user => $user, minute => 0, hour => 10, command => "cd ${homedir} && ./insserver update-restart", }
+  cron { 'insserver-update-restart': user => $user, minute => 0, hour => 10, command => "cd ${homedir} && ./insserver update-restart", } ->
+  cron { 'insserver-monitor': user => $user, command => "cd ${homedir} && ./insserver monitor", } ->
+  cron { 'insserver-sync': user => $user, command => "cd ${homedir} && ./sync-all-files.sh", }
 }
-/*
- ->
-  exec { 'create-serverfiles': command => "mkdir -p \"${serverfiles}\"", creates => $serverfiles, } ->
-}
-*/

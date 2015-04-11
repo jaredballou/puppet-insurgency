@@ -1,0 +1,14 @@
+#!/bin/bash
+MAPSRC="<%= @fastdl_rsync %>/maps/"
+HOMEDIR="<%= @homedir %>"
+INSDIR="${HOMEDIR}/serverfiles/insurgency"
+MAPDIR="${INSDIR}/maps/"
+SMDIR="${INSDIR}/addons/sourcemod"
+THEATERDIR="${INSDIR}/scripts/theaters"
+DATADIR="${INSDIR}/insurgency-data"
+
+rsync --progress -av $MAPSRC $MAPDIR
+cd $SMDIR && git pull origin master
+cd $THEATERDIR && git pull origin master
+cd $DATADIR && git pull origin master
+
