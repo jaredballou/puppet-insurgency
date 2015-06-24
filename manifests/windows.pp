@@ -1,0 +1,3 @@
+class insurgency::windows(
+) {
+}

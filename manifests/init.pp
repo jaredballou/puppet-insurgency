@@ -36,13 +36,35 @@
 # Copyright 2011 Your name here, unless otherwise noted.
 #
 class insurgency(
-  $user        = 'insserver',
-  $group       = 'insserver',
-  $uid         = 501,
-  $gid         = 501,
-  $homedir     = '/home/insserver',
-  $serverfiles = '/home/insserver/serverfiles',
-  $defaults    = {
+  $user              = 'insserver',
+  $group             = 'insserver',
+  $uid               = 501,
+  $gid               = 501,
+  $appid             = '237410',
+  $beta              = '',
+  $homedir           = '/home/insserver',
+  $rootdir           = $homedir,
+  $lockselfname      = "${rootdir}/.${servicename}.lock",
+  $filesdir          = "${rootdir}/serverfiles",
+  $systemdir         = "${filesdir}/insurgency",
+  $executabledir     = "${filesdir}",
+  $executable        = "./srcds_linux",
+  $servercfgdir      = "${systemdir}/cfg",
+  $servercfg         = "${servicename}.cfg",
+  $servercfgfullpath = "${servercfgdir}/${servercfg}",
+  $defaultcfg        = "${servercfgdir}/server.cfg",
+  $gamelogdir        = "${systemdir}/logs",
+  $scriptlogdir      = "${rootdir}/log/script",
+  $consolelogdir     = "${rootdir}/log/console",
+  $scriptlog         = "${scriptlogdir}/${servicename}-script.log",
+  $consolelog        = "${consolelogdir}/${servicename}-console.log",
+  $emaillog          = "${scriptlogdir}/${servicename}-email.log",
+  $instances         = {},
+  $admins            = {},
+  $gitserver         = 'https://github.com/jaredballou',
+  $fastdl            = 'ins.jballou.com/fastdl',
+  $servercfg         = {},
+  $defaults          = {
     appid             => 237410,
     beta              => '',
     clientport        => 27005,
@@ -61,60 +83,11 @@ class insurgency(
     steamuser         => 'anonymous',
     steampass         => '',
   },
-  $instances   = {},
-  $admins = {
-    'jballou' => {
-      'steamid' => 'STEAM_1:1:2938846',
-      'level' => '99:z'
-    },
-    'Geezer' => {
-      'steamid' => 'STEAM_1:1:10119430',
-      'level' => '90:z'
-    },
-    'MrClark' => {
-      'steamid' => 'STEAM_1:1:15239283',
-      'level' => '90:z'
-    },
-    'StinkPickle' => {
-      'steamid' => 'STEAM_1:1:17921013',
-      'level' => '90:z'
-    },
-    'Stryder' => {
-      'steamid' => 'STEAM_1:0:66263075',
-      'level' => '90:z'
-    },
-  },
-  $gitserver    = 'git@github.com:jaredballou',
-  $fastdl_http  = 'http://ins.jballou.com/fastdl',
-  $fastdl_rsync = 'rsync://ins.jballou.com/fastdl',
 ) {
-  Vcsrepo { owner => $user, group => $group, ensure => present, provider => git, revision => 'master', }
-  File { owner => $user, group => $group, }
-  Exec { user => $user, }
-  group { $group: gid => $gid, } ->
-  user { $user: uid => $uid, home => $homedir, gid => $group, } ->
-  package { ['git','gdb','mailx','wget','nano','tmux','glibc.i686','libstdc++.i686']: ensure => present, } ->
-  exec { 'create-homedir': command => "mkdir -p \"${homedir}\"", creates => $homedir, } ->
-  file { $homedir: ensure => directory, } ->
-  file { "${homedir}/insserver": mode => '0755', content => template('insurgency/insserver.erb'), } ->
-  file { "${homedir}/sync-all-files.sh": mode => '0755', content => template('insurgency/sync-all-files.sh.erb'), } ->
-  file { "${homedir}/cfg.insserver": ensure => directory, } ->
-  insurgency::instance { 'default': config => $defaults, } ->
-  exec { "insserver install": cwd => $homedir, path => "${::path}:${homedir}", creates => $serverfiles, } ->
-  file { $serverfiles: ensure => directory, source => 'puppet:///modules/insurgency/serverfiles', recurse => remote, } ->
-  exec { 'mkdir-sourcemod': command => "mkdir -p ${serverfiles}/insurgency/addons", creates => "${serverfiles}/insurgency/addons", } ->
-  vcsrepo { "${serverfiles}/insurgency/addons/sourcemod":
-    source   => "${gitserver}/insurgency-sourcemod.git",
-  } ->
-  exec { 'mkdir-scripts': command => "mkdir -p ${serverfiles}/insurgency/scripts", creates => "${serverfiles}/insurgency/scripts", } ->
-  vcsrepo { "${serverfiles}/insurgency/scripts/theaters":
-    source   => "${gitserver}/insurgency-theaters.git",
-  } ->
-  vcsrepo { "${serverfiles}/insurgency/insurgency-data":
-    source   => "${gitserver}/insurgency-data.git",
-  } ->
-  file { "${serverfiles}/insurgency/addons/sourcemod/configs/admins_simple.ini": content => template('insurgency/admins.erb'), } ->
-  cron { 'insserver-update-restart': user => $user, minute => 0, hour => 10, command => "cd ${homedir} && ./insserver update-restart", } ->
-  cron { 'insserver-monitor': user => $user, command => "cd ${homedir} && ./insserver monitor", } ->
-  cron { 'insserver-sync': user => $user, command => "cd ${homedir} && ./sync-all-files.sh", }
+  if ($osfamily == 'Windows') {
+    include insurgency::windows
+  } else {
+    include insurgency::linux
+  }
+  create_resources('insurgency::instance',$instances)
 }

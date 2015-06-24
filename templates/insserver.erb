@@ -19,8 +19,8 @@ if [ ! -e $scriptcfgdir ]; then mkdir -p $scriptcfgdir; fi
 if [ ! -f $cfg_default ]
 then
 cat <<'EOF' >> $cfg_default
-<% defaults.keys.sort.each do |key| -%>
-<%= key %>="<%= defaults[key] %>"
+<% options.keys.sort.each do |key| -%>
+<%= key %>="<%= options[key] %>"
 <% end -%>
 EOF
 fi
