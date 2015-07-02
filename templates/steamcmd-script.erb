@@ -1,0 +1,7 @@
+@ShutdownOnFailedCommand 1 //set to 0 if updating multiple servers at once
+@NoPromptForPassword 1
+login <%= @steamuser %> <%= @steampass %>
+force_install_dir <%= filesdir %>
+app_update <%= appid %> validate
+<%= @beta %>
+quit

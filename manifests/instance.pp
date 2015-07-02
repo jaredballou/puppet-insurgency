@@ -12,7 +12,7 @@ define insurgency::instance(
     Firewall { proto => udp, action => accept, }
 
     if ($title != 'default') {
-      file { "${insurgency::homedir}/${title}": ensure => symlink, target => "${insurgency::homedir}/insserver", }
+      file { "${::insurgency::linux::homedir}/${title}": ensure => symlink, target => "${::insurgency::linux::homedir}/insserver", }
       $cmd = $title
     } else {
       $cmd = 'insserver'
@@ -34,18 +34,21 @@ define insurgency::instance(
     }
 
     #Create server config
-    file { "${serverfiles}/insurgency/cfg/${cmd}.cfg": content => template('insurgency/servercfg.erb'), } ->
+    if (!defined(File[$::insurgency::linux::servercfgdir])) {
+      exec { 'create-servercfgdir': command => "/bin/mkdir -p ${::insurgency::linux::servercfgdir}", creates => $::insurgency::linux::servercfgdir, user => root, } ->
+      file { $::insurgency::linux::servercfgdir: ensure => directory, }
+    }
+    file { "${::insurgency::linux::filesdir}/insurgency/cfg/${cmd}.cfg": content => template('insurgency/servercfg.erb'), } ->
 
     #Create config for script
-    file { "${insurgency::homedir}/cfg.insserver/${cmd}.cfg": content => template('insurgency/instance.cfg.erb'), replace => $overwrite, }
+    file { "${::insurgency::linux::homedir}/cfg.insserver/${cmd}.cfg": content => template('insurgency/instance.cfg.erb'), replace => $overwrite, }
 
-    #
     if ($autostart) {
-      cron { "update-restart-insserver-${title}": user => $insurgency::user, command => "cd ${insurgency::homedir} && ./${cmd} update-restart", } ->
+      cron { "update-${cmd}": user => $::insurgency::linux::user, command => "cd ${::insurgency::linux::homedir} && ./${cmd} update-restart", }
     }
 
     if ($monitor) {
-      cron { "monitor-insserver-${title}": user => $insurgency::user, command => "cd ${insurgency::homedir} && ./${cmd} monitor", }
+      cron { "monitor-${cmd}": user => $::insurgency::linux::user, command => "cd ${::insurgency::linux::homedir} && ./${cmd} monitor", }
     }
   }
 }
